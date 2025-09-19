@@ -1,33 +1,101 @@
-from PIL import Image, ImageSequence
-from termcolor import colored, cprint
+import os
+from PIL import Image, ImageSequence # Documentation at https://pillow.readthedocs.io/en/stable/
+from termcolor import colored, cprint # Documentation at https://pypi.org/project/termcolor/
 
 DEBUG = True
 
 test_gif = "ca2l_talk.gif"
 frames = []
+colors = []
 
 def debug(string):
     if DEBUG:
         print(string)
 
+# Resize the gif to fit comfortably in the terminal.
+def resize(gif):
+    gif_width = gif.width
+    gif_height = gif.height
+    debug("GIF is " + str(gif_width) + " x " + str(gif_height) + ".")
+
+    terminal_size = os.get_terminal_size()
+    term_cols = terminal_size[0]
+    term_rows = terminal_size[1]
+    debug(terminal_size)
+    if gif_width > term_cols:
+        debug("Resizing GIF to fit horizontal space...")
+        scale = term_cols / gif_width
+        gif = gif.resize([int(scale * gif_width), int(scale * gif_height)])
+        gif_width = gif.width
+        gif_height = gif.height
+    if gif_height > term_rows:
+        debug("Resizing GIF to fit vertical space...")
+        scale = term_rows / gif_height
+        gif = gif.resize([int(scale * gif_width), int(scale * gif_height)])
+
+    debug("GIF is now " + str(gif_width) + " x " + str(gif_height) + ".")
+    return gif
+
 # Initialize all frames.
 def get_frames(gif):
     ImageSequence.all_frames(gif)
     for frame in ImageSequence.Iterator(gif):
-        frames.append(frame)
+        frames.append(list(frame.getdata()))
+    debug("Frames: " + str(len(frames)))
+
+# Initialize all colors.
+def get_colors(gif):
+    transparency = gif.has_transparency_data
+    palette = gif.getpalette()
+    debug("Raw palette: " + str(palette))
+    values_per_color = 3
+    if transparency:
+        values_per_color += 1
+
+    if DEBUG:
+        if int(len(palette) / values_per_color) * values_per_color != len(palette):
+            print("ERROR: Color values are being left out!")
+
+    for i in range(int(len(palette) / values_per_color)):
+        color = []
+        for j in range(values_per_color):
+            color.append(palette[i * values_per_color + j])
+        colors.append(color)
+    debug("Colors: " + str(colors))
+
+    if DEBUG:
+        for i in range(len(colors)):
+            for j in range(len(colors)):
+                if i >= j:
+                    continue
+                if colors[i] == colors[j]:
+                    print("ERROR: Two color values were the same!")
 
 # Render one frame of a gif.
-def render_frame(frame):
-    for row in range(frame.height):
-        for col in range(frame.width):
-            render_pixel(frame[row, col])
+def render_frame(frame, width, height):
+    for row in range(height):
+        for col in range(width):
+            render_pixel(frame[col + row * width])
+        print("")
 
 # Render one pixel of one frame of a gif.
 def render_pixel(pixel):
-    print(pixel)
+    color = (colors[pixel][0], colors[pixel][1], colors[pixel][2])
+    attributes = []
+    text = colored("██", color, on_color=color, attrs=attributes)
+    if len(colors[pixel]) == 4:
+        if colors[pixel][3] != 0:
+            attributes.append("blink")
+            text = colored("  ", attrs=attributes)
+    print(text, sep="", end="")
 
-gif = Image.open(test_gif)
+original = Image.open(test_gif)
+gif = original.copy()
+gif = resize(gif)
+width = gif.width
+height = gif.height
 get_frames(gif)
-while True:
-    for frame in frames:
-        render_frame(frame)
+get_colors(gif)
+# while True:
+for frame in frames:
+    render_frame(frame, width, height)
