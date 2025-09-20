@@ -159,7 +159,7 @@ def initialize():
 def interpret_args():
     global gif_file, speed
 
-    if sys.argv[1] == None:
+    if len(sys.argv) < 2:
         print("ERROR: No GIF specified! Put in the filename of the GIF you want to use, or \"help\" for more information.")
         sys.exit()
 
