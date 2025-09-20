@@ -5,6 +5,7 @@ from PIL import Image, ImageSequence # Documentation at https://pillow.readthedo
 from termcolor import colored, cprint # Documentation at https://pypi.org/project/termcolor/
 
 DEBUG = False
+VALUES_PER_COLOR = 4 # In RGBA, there will be 4 colors.
 
 frames = []
 colors = []
@@ -25,68 +26,85 @@ def debug(string):
     if DEBUG:
         print(string)
 
-# Resize the gif to fit comfortably in the terminal.
-def resize(gif):
+# Resize the frame to fit comfortably in the terminal.
+def resize(frame):
     global term_cols, term_rows
 
-    gif_width = gif.width
-    gif_height = gif.height
-    debug("Frame is initially " + str(gif_width) + " x " + str(gif_height) + ".")
+    # Get the size of the frame.
+    frame_width = frame.width
+    frame_height = frame.height
+    debug("Frame is initially " + str(frame_width) + " x " + str(frame_height) + ".")
 
+    # Get the size of the terminal.
     terminal_size = os.get_terminal_size()
+    debug(terminal_size)
     term_cols = terminal_size[0]
     term_rows = terminal_size[1]
-    debug(terminal_size)
-    if gif_width > term_cols:
-        debug("Resizing frame to fit horizontal space...")
-        scale = term_cols / gif_width
-        gif = gif.resize([int(scale * gif_width), int(scale * gif_height)])
-        gif_width = gif.width
-        gif_height = gif.height
-    if gif_height > term_rows:
-        debug("Resizing frame to fit vertical space...")
-        scale = term_rows / gif_height
-        gif = gif.resize([int(scale * gif_width), int(scale * gif_height)])
 
-    debug("Frame is now " + str(gif_width) + " x " + str(gif_height) + ".")
-    return gif
+    # Resize if necessary.
+    if frame_width > term_cols:
+        debug("Resizing frame to fit horizontal space...")
+        scale = term_cols / frame_width
+        frame = frame.resize([int(scale * frame_width), int(scale * frame_height)])
+        frame_width = frame.width
+        frame_height = frame.height
+    if frame_height > term_rows:
+        debug("Resizing frame to fit vertical space...")
+        scale = term_rows / frame_height
+        frame = frame.resize([int(scale * frame_width), int(scale * frame_height)])
+        frame_width = frame.width
+        frame_height = frame.height
+
+    debug("Frame is now " + str(frame_width) + " x " + str(frame_height) + ".")
+    return frame
 
 # Initialize all frames.
 def get_frames(gif):
+    global frames
+
     ImageSequence.all_frames(gif)
     for frame in ImageSequence.Iterator(gif):
         copy = frame.copy()
+
+        # Convert to RGBA and then back to P (palette) so that all frames use palette mode consistently.
         copy = frame.convert(mode="RGBA")
         copy = frame.convert(mode="P")
+
         copy = resize(copy)
         frames.append(copy)
+
     debug("Frames: " + str(len(frames)))
 
 # Initialize all colors.
 def get_colors(frames):
+    global colors
+
+    # Each frame can have its own palette in some GIFs, so we must get a seperate palette for each frame.
     for frame in frames:
         frame_colors = []
         palette = frame.getpalette(rawmode='RGBA')
         debug("Raw palette: " + str(palette))
-        values_per_color = 4
+
+        # If there was no palette for this frame, then the palette is the same as the previous frame.
         if palette == None:
             colors.append(colors[-1])
             continue
 
         if DEBUG:
-            if int(len(palette) / values_per_color) * values_per_color != len(palette):
+            if int(len(palette) / VALUES_PER_COLOR) * VALUES_PER_COLOR != len(palette):
                 print("ERROR: Color values are being left out!")
 
-        for i in range(int(len(palette) / values_per_color)):
+        # Group the palette from a list of plain ints to a set of [[R, G, B, A], ...]
+        for i in range(int(len(palette) / VALUES_PER_COLOR)):
             color = []
-            for j in range(values_per_color):
-                color.append(palette[i * values_per_color + j])
+            for j in range(VALUES_PER_COLOR):
+                color.append(palette[i * VALUES_PER_COLOR + j])
             frame_colors.append(color)
 
         colors.append(frame_colors)
     debug("Colors: " + str(colors))
 
-# Render one frame of a gif.
+# Render one frame of a gif as a printable string.
 def render_frame(frame_index, frame, width, height):
     text = ""
     for row in range(height):
@@ -95,7 +113,7 @@ def render_frame(frame_index, frame, width, height):
         text += colored("\n")
     return text[0:-2] # Trim off the final \n.
 
-# Render one pixel of one frame of a gif.
+# Render one pixel of one frame of a gif as a printable string.
 def render_pixel(frame_index, pixel):
     color = (colors[frame_index][pixel][0], colors[frame_index][pixel][1], colors[frame_index][pixel][2])
     attributes = []
@@ -103,15 +121,13 @@ def render_pixel(frame_index, pixel):
     if DEBUG:
         text = colored(str(pixel) + " ", (255 - colors[frame_index][pixel][0], 255 - colors[frame_index][pixel][1], 255 - colors[frame_index][pixel][2]), on_color=color, attrs=attributes)
 
-    # If it should be transparent.
-    if not DEBUG:
-        if len(colors[frame_index][pixel]) == 4:
-            if colors[frame_index][pixel][3] < 128:
-                text = colored("  ", attrs=attributes)
+    # If it should be transparent, don't use any color for the foreground or background.
+    if colors[frame_index][pixel][3] < 128:
+        text = colored("  ", attrs=attributes)
 
     return text
 
-# Render the whole gif into a list of printable text frames.
+# Render the whole gif into a list of printable strings, each representing one frame.
 def render_all():
     frame_index = 0
     for frame in frames:
@@ -143,7 +159,7 @@ def interpret_args():
     global gif_file, speed
 
     if sys.argv[1] == None:
-        print("ERROR: No GIF specified!")
+        print("ERROR: No GIF specified! Put in the filename of the GIF you want to use, or \"help\" for more information.")
         return
     gif_file = sys.argv[1]
 
