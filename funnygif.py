@@ -40,19 +40,23 @@ def resize(gif):
 def get_frames(gif):
     ImageSequence.all_frames(gif)
     for frame in ImageSequence.Iterator(gif):
-        frames.append(list(frame.getdata()))
+        copy = frame.copy()
+        copy = frame.convert(mode="RGBA")
+        copy = frame.convert(mode="P")
+        copy = resize(copy)
+        frames.append(copy)
     debug("Frames: " + str(len(frames)))
 
 # Initialize all colors.
-def get_colors(gif):
+def get_colors(frames):
     for frame in frames:
         frame_colors = []
-        transparency = gif.has_transparency_data
-        palette = gif.getpalette()
+        palette = frame.getpalette(rawmode='RGBA')
         debug("Raw palette: " + str(palette))
-        values_per_color = 3
-        if transparency:
-            values_per_color += 1
+        values_per_color = 4
+        if palette == None:
+            colors.append(colors[-1])
+            continue
 
         if DEBUG:
             if int(len(palette) / values_per_color) * values_per_color != len(palette):
@@ -64,49 +68,41 @@ def get_colors(gif):
                 color.append(palette[i * values_per_color + j])
             frame_colors.append(color)
 
-        if DEBUG:
-            for i in range(len(frame_colors)):
-                for j in range(len(frame_colors)):
-                    if i >= j:
-                        continue
-                    if frame_colors[i] == frame_colors[j]:
-                        print("ERROR: Two color values were the same!")
-
         colors.append(frame_colors)
     debug("Colors: " + str(colors))
 
 # Render one frame of a gif.
-def render_frame(current_frame, frame, width, height):
+def render_frame(frame_index, frame, width, height):
     for row in range(height):
         for col in range(width):
-            render_pixel(current_frame, frame[col + row * width])
+            render_pixel(frame_index, frame[col + row * width])
         print("")
 
 # Render one pixel of one frame of a gif.
-def render_pixel(current_frame, pixel):
-    color = (colors[current_frame][pixel][0], colors[current_frame][pixel][1], colors[current_frame][pixel][2])
+def render_pixel(frame_index, pixel):
+    color = (colors[frame_index][pixel][0], colors[frame_index][pixel][1], colors[frame_index][pixel][2])
     attributes = []
-    text = colored("██", color, on_color=color, attrs=attributes)
+    text = colored("  ", color, on_color=color, attrs=attributes)
     if DEBUG:
-        text = colored(str(pixel) + " ", (colors[current_frame][pixel][1], colors[current_frame][pixel][2], colors[current_frame][pixel][0]), on_color=color, attrs=attributes)
+        text = colored(str(pixel) + " ", (255 - colors[frame_index][pixel][0], 255 - colors[frame_index][pixel][1], 255 - colors[frame_index][pixel][2]), on_color=color, attrs=attributes)
 
     # If it should be transparent.
-    if len(colors[current_frame][pixel]) == 4:
-        if colors[current_frame][pixel][3] != 0:
-            attributes.append("blink")
-            text = colored("  ", attrs=attributes)
+    if not DEBUG:
+        if len(colors[frame_index][pixel]) == 4:
+            if colors[frame_index][pixel][3] < 128:
+                attributes.append("blink")
+                text = colored("  ", attrs=attributes)
 
     print(text, sep="", end="")
 
-original = Image.open(test_gif)
-gif = original.copy()
-gif = resize(gif)
-width = gif.width
-height = gif.height
+gif = Image.open(test_gif)
 get_frames(gif)
-get_colors(gif)
-# while True:
-current_frame = 0
-for frame in frames:
-    render_frame(current_frame, frame, width, height)
-    current_frame += 1
+width = frames[0].width
+height = frames[0].height
+get_colors(frames)
+while True:
+    os.system('cls' if os.name == 'nt' else 'clear')
+    frame_index = 0
+    for frame in frames:
+        render_frame(frame_index, list(frame.getdata()), width, height)
+        frame_index += 1
