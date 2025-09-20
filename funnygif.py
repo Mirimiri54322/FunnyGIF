@@ -93,6 +93,7 @@ def get_colors(frames):
         if DEBUG:
             if int(len(palette) / VALUES_PER_COLOR) * VALUES_PER_COLOR != len(palette):
                 print("ERROR: Color values are being left out!")
+                sys.exit()
 
         # Group the palette from a list of plain ints to a set of [[R, G, B, A], ...]
         for i in range(int(len(palette) / VALUES_PER_COLOR)):
@@ -160,7 +161,13 @@ def interpret_args():
 
     if sys.argv[1] == None:
         print("ERROR: No GIF specified! Put in the filename of the GIF you want to use, or \"help\" for more information.")
-        return
+        sys.exit()
+
+    if sys.argv[1] == "help":
+        readme = open("README.md", "r").read()
+        print(readme)
+        sys.exit()
+
     gif_file = sys.argv[1]
 
     debug(str(len(sys.argv)) + " arguments.")
