@@ -19,6 +19,9 @@ term_rows = 0
 # argv[1] should always be the file to use.
 gif_file = None
 
+# Arg: the integer number of colors to have in the palette. If this is None, use as many colors as the image has by default.
+max_colors = None
+
 # Arg: the constant by which to multiply the speed of the GIF at playback.
 speed = 1.0
 
@@ -66,6 +69,10 @@ def get_frames(gif):
     for frame in ImageSequence.Iterator(gif):
         copy = frame.copy()
 
+        # Cut the number of colors, if that's what the user wanted.
+        if max_colors != None:
+            frame = frame.quantize(max_colors)
+
         # Convert to RGBA and then back to P (palette) so that all frames use palette mode consistently.
         copy = frame.convert(mode="RGBA")
         copy = frame.convert(mode="P")
@@ -101,6 +108,12 @@ def get_colors(frames):
             for j in range(VALUES_PER_COLOR):
                 color.append(palette[i * VALUES_PER_COLOR + j])
             frame_colors.append(color)
+
+        if DEBUG:
+            if max_colors != None:
+                if len(frame_colors) > max_colors:
+                    print("ERROR: More colors than the maximum amount specified by the user.")
+                    sys.exit()
 
         colors.append(frame_colors)
     debug("Colors: " + str(colors))
@@ -157,7 +170,7 @@ def initialize():
 
 # Interpret command line arguments.
 def interpret_args():
-    global gif_file, speed
+    global gif_file, speed, max_colors
 
     if len(sys.argv) < 2:
         print("ERROR: No GIF specified! Put in the filename of the GIF you want to use, or \"help\" for more information.")
@@ -173,6 +186,9 @@ def interpret_args():
     debug(str(len(sys.argv)) + " arguments.")
     for arg in sys.argv[2:]:
         debug(arg)
+        if arg[:7] == "colors=":
+            max_colors = int(arg[7:])
+            debug("Set max_colors to " + str(max_colors) + ".")
         if arg[:6] == "speed=":
             speed = float(arg[6:])
             debug("Set speed to " + str(speed) + ".")
