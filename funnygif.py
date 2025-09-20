@@ -5,7 +5,7 @@ from termcolor import colored, cprint # Documentation at https://pypi.org/projec
 
 DEBUG = False
 
-test_gif = "ca2l_talk.gif"
+test_gif = "mr-noodles-my-honest-reaction.gif"
 frames = []
 colors = []
 rendered = []
