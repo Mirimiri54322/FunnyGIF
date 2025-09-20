@@ -1,11 +1,11 @@
 import os
+import sys
 import time
 from PIL import Image, ImageSequence # Documentation at https://pillow.readthedocs.io/en/stable/
 from termcolor import colored, cprint # Documentation at https://pypi.org/project/termcolor/
 
 DEBUG = False
 
-test_gif = "mr-noodles-my-honest-reaction.gif"
 frames = []
 colors = []
 rendered = []
@@ -14,6 +14,9 @@ width = 0
 height = 0
 term_cols = 0
 term_rows = 0
+
+# Args
+gif_file = None
 
 def debug(string):
     if DEBUG:
@@ -118,13 +121,13 @@ def is_terminal_size_different():
     return term_rows != terminal_size[1] or term_cols != terminal_size[0]
 
 def initialize():
-    global frames, colors, rendered, duration, width, height
+    global frames, colors, rendered, duration, width, height, gif_file
 
     frames = []
     colors = []
     rendered = []
 
-    gif = Image.open(test_gif)
+    gif = Image.open(gif_file)
     duration = gif.info["duration"]
     get_frames(gif)
     width = frames[0].width
@@ -132,6 +135,15 @@ def initialize():
     get_colors(frames)
     render_all()
 
+# Interpret command line arguments.
+def interpret_args():
+    global gif_file
+    if sys.argv[1] == None:
+        print("ERROR: No GIF specified!")
+        return
+    gif_file = sys.argv[1]
+
+interpret_args()
 initialize()
 while True:
     if is_terminal_size_different():
