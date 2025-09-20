@@ -15,8 +15,11 @@ height = 0
 term_cols = 0
 term_rows = 0
 
-# Args
+# argv[1] should always be the file to use.
 gif_file = None
+
+# Arg: the constant by which to multiply the speed of the GIF at playback.
+speed = 1.0
 
 def debug(string):
     if DEBUG:
@@ -28,24 +31,24 @@ def resize(gif):
 
     gif_width = gif.width
     gif_height = gif.height
-    debug("GIF is " + str(gif_width) + " x " + str(gif_height) + ".")
+    debug("Frame is initially " + str(gif_width) + " x " + str(gif_height) + ".")
 
     terminal_size = os.get_terminal_size()
     term_cols = terminal_size[0]
     term_rows = terminal_size[1]
     debug(terminal_size)
     if gif_width > term_cols:
-        debug("Resizing GIF to fit horizontal space...")
+        debug("Resizing frame to fit horizontal space...")
         scale = term_cols / gif_width
         gif = gif.resize([int(scale * gif_width), int(scale * gif_height)])
         gif_width = gif.width
         gif_height = gif.height
     if gif_height > term_rows:
-        debug("Resizing GIF to fit vertical space...")
+        debug("Resizing frame to fit vertical space...")
         scale = term_rows / gif_height
         gif = gif.resize([int(scale * gif_width), int(scale * gif_height)])
 
-    debug("GIF is now " + str(gif_width) + " x " + str(gif_height) + ".")
+    debug("Frame is now " + str(gif_width) + " x " + str(gif_height) + ".")
     return gif
 
 # Initialize all frames.
@@ -137,11 +140,19 @@ def initialize():
 
 # Interpret command line arguments.
 def interpret_args():
-    global gif_file
+    global gif_file, speed
+
     if sys.argv[1] == None:
         print("ERROR: No GIF specified!")
         return
     gif_file = sys.argv[1]
+
+    debug(str(len(sys.argv)) + " arguments.")
+    for arg in sys.argv[2:]:
+        debug(arg)
+        if arg[:6] == "speed=":
+            speed = float(arg[6:])
+            debug("Set speed to " + str(speed) + ".")
 
 interpret_args()
 initialize()
@@ -153,4 +164,4 @@ while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         print(frame, sep="", end="")
         frame_index += 1
-        time.sleep(duration * 0.001)
+        time.sleep(duration * 0.001 / speed)
