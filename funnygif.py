@@ -9,6 +9,11 @@ test_gif = "mr-noodles-my-honest-reaction.gif"
 frames = []
 colors = []
 rendered = []
+duration = 0
+width = 0
+height = 0
+term_cols = 0
+term_rows = 0
 
 def debug(string):
     if DEBUG:
@@ -16,6 +21,8 @@ def debug(string):
 
 # Resize the gif to fit comfortably in the terminal.
 def resize(gif):
+    global term_cols, term_rows
+
     gif_width = gif.width
     gif_height = gif.height
     debug("GIF is " + str(gif_width) + " x " + str(gif_height) + ".")
@@ -79,7 +86,7 @@ def render_frame(frame_index, frame, width, height):
     for row in range(height):
         for col in range(width):
             text += render_pixel(frame_index, frame[col + row * width])
-        text += "\n"
+        text += colored("\n")
     return text[0:-2] # Trim off the final \n.
 
 # Render one pixel of one frame of a gif.
@@ -105,14 +112,30 @@ def render_all():
         rendered.append(render_frame(frame_index, list(frame.getdata()), width, height))
         frame_index += 1
 
-gif = Image.open(test_gif)
-duration =gif.info["duration"]
-get_frames(gif)
-width = frames[0].width
-height = frames[0].height
-get_colors(frames)
-render_all()
+# If the terminal was resized, return True.
+def is_terminal_size_different():
+    terminal_size = os.get_terminal_size()
+    return term_rows != terminal_size[1] or term_cols != terminal_size[0]
+
+def initialize():
+    global frames, colors, rendered, duration, width, height
+
+    frames = []
+    colors = []
+    rendered = []
+
+    gif = Image.open(test_gif)
+    duration = gif.info["duration"]
+    get_frames(gif)
+    width = frames[0].width
+    height = frames[0].height
+    get_colors(frames)
+    render_all()
+
+initialize()
 while True:
+    if is_terminal_size_different():
+            initialize()
     frame_index = 0
     for frame in rendered:
         os.system('cls' if os.name == 'nt' else 'clear')
