@@ -1,12 +1,14 @@
 import os
+import time
 from PIL import Image, ImageSequence # Documentation at https://pillow.readthedocs.io/en/stable/
 from termcolor import colored, cprint # Documentation at https://pypi.org/project/termcolor/
 
-DEBUG = True
+DEBUG = False
 
 test_gif = "ca2l_talk.gif"
 frames = []
 colors = []
+rendered = []
 
 def debug(string):
     if DEBUG:
@@ -73,10 +75,12 @@ def get_colors(frames):
 
 # Render one frame of a gif.
 def render_frame(frame_index, frame, width, height):
+    text = ""
     for row in range(height):
         for col in range(width):
-            render_pixel(frame_index, frame[col + row * width])
-        print("")
+            text += render_pixel(frame_index, frame[col + row * width])
+        text += "\n"
+    return text[0:-2] # Trim off the final \n.
 
 # Render one pixel of one frame of a gif.
 def render_pixel(frame_index, pixel):
@@ -90,19 +94,28 @@ def render_pixel(frame_index, pixel):
     if not DEBUG:
         if len(colors[frame_index][pixel]) == 4:
             if colors[frame_index][pixel][3] < 128:
-                attributes.append("blink")
                 text = colored("  ", attrs=attributes)
 
-    print(text, sep="", end="")
+    return text
+
+# Render the whole gif into a list of printable text frames.
+def render_all():
+    frame_index = 0
+    for frame in frames:
+        rendered.append(render_frame(frame_index, list(frame.getdata()), width, height))
+        frame_index += 1
 
 gif = Image.open(test_gif)
+duration =gif.info["duration"]
 get_frames(gif)
 width = frames[0].width
 height = frames[0].height
 get_colors(frames)
+render_all()
 while True:
-    os.system('cls' if os.name == 'nt' else 'clear')
     frame_index = 0
-    for frame in frames:
-        render_frame(frame_index, list(frame.getdata()), width, height)
+    for frame in rendered:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print(frame, sep="", end="")
         frame_index += 1
+        time.sleep(duration * 0.001)
