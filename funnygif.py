@@ -4,7 +4,10 @@ import time
 from PIL import Image, ImageSequence # Documentation at https://pillow.readthedocs.io/en/stable/
 from termcolor import colored, cprint # Documentation at https://pypi.org/project/termcolor/
 
+# Debug constants.
 DEBUG = False
+SHOULD_PLAY = True
+
 VALUES_PER_COLOR = 4 # In RGBA, there will be 4 colors.
 
 frames = []
@@ -18,6 +21,9 @@ term_rows = 0
 
 # argv[1] should always be the file to use.
 gif_file = None
+
+# Arg: Character to use to draw the image.
+character = None
 
 # Arg: whether or not to dither the image when shrinking.
 is_dithered = True
@@ -135,9 +141,18 @@ def render_frame(frame_index, frame, width, height):
 
 # Render one pixel of one frame of a gif as a printable string.
 def render_pixel(frame_index, pixel):
+    global character
+
     color = (colors[frame_index][pixel][0], colors[frame_index][pixel][1], colors[frame_index][pixel][2])
     attributes = []
+
     text = colored("  ", color, on_color=color, attrs=attributes)
+    if character != None:
+        debug("Using alternate character " + character + " to render pixel.")
+        if len(character) == 1:
+            text = colored(character + character, color, attrs=attributes)
+        elif len(character) == 2:
+            text = colored(character, color, attrs=attributes)
     if DEBUG:
         text = colored(str(pixel) + " ", (255 - colors[frame_index][pixel][0], 255 - colors[frame_index][pixel][1], 255 - colors[frame_index][pixel][2]), on_color=color, attrs=attributes)
 
@@ -149,10 +164,12 @@ def render_pixel(frame_index, pixel):
 
 # Render the whole gif into a list of printable strings, each representing one frame.
 def render_all():
+    debug("Rendering...")
     frame_index = 0
     for frame in frames:
         rendered.append(render_frame(frame_index, list(frame.getdata()), width, height))
         frame_index += 1
+    debug("Render completed!")
 
 # If the terminal was resized, return True.
 def is_terminal_size_different():
@@ -176,7 +193,7 @@ def initialize():
 
 # Interpret command line arguments.
 def interpret_args():
-    global gif_file, is_dithered, speed, max_colors
+    global gif_file, character, is_dithered, speed, max_colors
 
     if len(sys.argv) < 2:
         print("ERROR: No GIF specified! Put in the filename of the GIF you want to use, or \"help\" for more information.")
@@ -192,7 +209,15 @@ def interpret_args():
     debug(str(len(sys.argv)) + " arguments.")
     for arg in sys.argv[2:]:
         debug(arg)
-        if arg[:7] == "colors=":
+
+        if arg[:5] == "char=":
+            character = arg[5:]
+            if len(character) != 1 and len(character) != 2:
+                print("ERROR: Length of char= value can only be 1 or 2.")
+                sys.exit()
+            debug("Set character to " + character + ".")
+
+        elif arg[:7] == "colors=":
             max_colors = int(arg[7:])
             debug("Set max_colors to " + str(max_colors) + ".")
 
@@ -211,12 +236,13 @@ def interpret_args():
 
 interpret_args()
 initialize()
-while True:
-    if is_terminal_size_different():
-            initialize()
-    frame_index = 0
-    for frame in rendered:
-        os.system('cls' if os.name == 'nt' else 'clear')
-        print(frame, sep="", end="")
-        frame_index += 1
-        time.sleep(duration * 0.001 / speed)
+if SHOULD_PLAY:
+    while True:
+        if is_terminal_size_different():
+                initialize()
+        frame_index = 0
+        for frame in rendered:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print(frame, sep="", end="")
+            frame_index += 1
+            time.sleep(duration * 0.001 / speed)
