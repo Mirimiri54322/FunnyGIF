@@ -19,6 +19,9 @@ term_rows = 0
 # argv[1] should always be the file to use.
 gif_file = None
 
+# Arg: whether or not to dither the image when shrinking.
+is_dithered = True
+
 # Arg: the integer number of colors to have in the palette. If this is None, use as many colors as the image has by default.
 max_colors = None
 
@@ -71,11 +74,14 @@ def get_frames(gif):
 
         # Cut the number of colors, if that's what the user wanted.
         if max_colors != None:
-            frame = frame.quantize(max_colors)
+            if is_dithered:
+                frame = frame.quantize(max_colors, dither=Image.Dither.FLOYDSTEINBERG)
+            else:
+                frame = frame.quantize(max_colors, dither=Image.Dither.NONE)
 
         # Convert to RGBA and then back to P (palette) so that all frames use palette mode consistently.
         copy = frame.convert(mode="RGBA")
-        copy = frame.convert(mode="P")
+        copy = copy.convert(mode="P")
 
         copy = resize(copy)
         frames.append(copy)
@@ -170,7 +176,7 @@ def initialize():
 
 # Interpret command line arguments.
 def interpret_args():
-    global gif_file, speed, max_colors
+    global gif_file, is_dithered, speed, max_colors
 
     if len(sys.argv) < 2:
         print("ERROR: No GIF specified! Put in the filename of the GIF you want to use, or \"help\" for more information.")
@@ -189,7 +195,17 @@ def interpret_args():
         if arg[:7] == "colors=":
             max_colors = int(arg[7:])
             debug("Set max_colors to " + str(max_colors) + ".")
-        if arg[:6] == "speed=":
+
+        elif arg[:7] == "dither=":
+            if arg[7:].lower() == "true":
+                is_dithered = True
+            elif arg[7:].lower() == "false":
+                is_dithered = False
+            else:
+                print("ERROR: Dither mode not recognized!")
+                sys.exit()
+
+        elif arg[:6] == "speed=":
             speed = float(arg[6:])
             debug("Set speed to " + str(speed) + ".")
 

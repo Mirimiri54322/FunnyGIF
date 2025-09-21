@@ -8,4 +8,5 @@ On Linux, you can copy the file "funnygif" into your /usr/local/bin folder, and 
 ## Arguments
 Each argument is shown with its name and its default value, and a description of what it does.
 - colors (colors= however many colors the image has by default) Limits the maximum number of colors to the specified value. Setting this to more colors than the image has will not produce a visible result.
+- dither (dither=true) "true" or "false" for whether or not the image should be dithered. Only does anything if colors is set. It may be hard to notice the effect of this option.
 - speed (speed=1.0) A higher speed makes the GIF animate faster, and a lower speed makes it slower.
