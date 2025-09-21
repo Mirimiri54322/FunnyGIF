@@ -2,8 +2,8 @@
  Put a funny GIF in your terminal.
 
 ## Usage
-Run this program with the filename of a GIF, and optionally, arguments.
-For example, "funnygif wizard.gif speed=1.5"
+Run funnygif with the filename of a GIF, and optionally, arguments. For example, "funnygif wizard.gif speed=1.5"
+On Linux, you can copy the file "funnygif" into your /usr/local/bin folder, and chaneg the file path to the place where funnygif.py is located to call it from anywhere with just "funnygif".
 
 ## Arguments
 Each argument is shown with its name and its default value, and a description of what it does.
