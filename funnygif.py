@@ -1,3 +1,4 @@
+import math
 import os
 import sys
 import time
@@ -53,17 +54,17 @@ def resize(frame):
     term_cols = terminal_size[0]
     term_rows = terminal_size[1]
 
-    # Resize if necessary.
+    # Resize if necessary. Keep in mind that the calls to frame.resize() in here are not calls to THIS method, but calls to a PIL Image method.
     if frame_width > term_cols:
         debug("Resizing frame to fit horizontal space...")
-        scale = term_cols / frame_width
-        frame = frame.resize([int(scale * frame_width), int(scale * frame_height)])
+        scale = float(term_cols) / float(frame_width)
+        frame = frame.resize([int(math.trunc(scale * frame_width)), int(math.trunc(scale * frame_height))])
         frame_width = frame.width
         frame_height = frame.height
     if frame_height > term_rows:
         debug("Resizing frame to fit vertical space...")
-        scale = term_rows / frame_height
-        frame = frame.resize([int(scale * frame_width), int(scale * frame_height)])
+        scale = float(term_rows) / float(frame_height)
+        frame = frame.resize([int(math.trunc(scale * frame_width)), int(math.trunc(scale * frame_height))])
         frame_width = frame.width
         frame_height = frame.height
 
@@ -179,6 +180,10 @@ def is_terminal_size_different():
 def initialize():
     global frames, colors, rendered, duration, width, height, gif_file
 
+    # Make it look cleaner while it renders.
+    clear_screen()
+    print("...")
+
     frames = []
     colors = []
     rendered = []
@@ -234,6 +239,10 @@ def interpret_args():
             speed = float(arg[6:])
             debug("Set speed to " + str(speed) + ".")
 
+# Clear the screen.
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
 interpret_args()
 initialize()
 if SHOULD_PLAY:
@@ -243,7 +252,7 @@ if SHOULD_PLAY:
             if is_terminal_size_different():
                 initialize()
                 break
-            os.system('cls' if os.name == 'nt' else 'clear')
+            clear_screen()
             print(frame, sep="", end="")
             frame_index += 1
             time.sleep(duration * 0.001 / speed)
