@@ -238,10 +238,11 @@ interpret_args()
 initialize()
 if SHOULD_PLAY:
     while True:
-        if is_terminal_size_different():
-                initialize()
         frame_index = 0
         for frame in rendered:
+            if is_terminal_size_different():
+                initialize()
+                break
             os.system('cls' if os.name == 'nt' else 'clear')
             print(frame, sep="", end="")
             frame_index += 1
