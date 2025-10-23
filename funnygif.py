@@ -1,5 +1,6 @@
 import math
 import os
+import signal
 import sys
 import time
 from PIL import Image, ImageSequence # Documentation at https://pillow.readthedocs.io/en/stable/
@@ -9,8 +10,10 @@ from termcolor import colored, cprint # Documentation at https://pypi.org/projec
 DEBUG = False
 SHOULD_PLAY = True
 
+# Non-debug constants.
 VALUES_PER_COLOR = 4 # In RGBA, there will be 4 colors.
 
+# Image variables.
 frames = []
 colors = []
 rendered = []
@@ -20,24 +23,27 @@ height = 0
 term_cols = 0
 term_rows = 0
 
-# argv[1] should always be the file to use.
-gif_file = None
+# Arg variables.
+gif_file = None # argv[1] should always be the file to use.
+character = None # Arg: Character to use to draw the image.
+is_dithered = True # Arg: whether or not to dither the image when shrinking.
+max_colors = None # Arg: the integer number of colors to have in the palette. If this is None, use as many colors as the image has by default.
+speed = 1.0 # Arg: the constant by which to multiply the speed of the GIF at playback.
 
-# Arg: Character to use to draw the image.
-character = None
+# Signal variables.
+is_sig_quit = False
 
-# Arg: whether or not to dither the image when shrinking.
-is_dithered = True
-
-# Arg: the integer number of colors to have in the palette. If this is None, use as many colors as the image has by default.
-max_colors = None
-
-# Arg: the constant by which to multiply the speed of the GIF at playback.
-speed = 1.0
-
+# Print a debug message if DEBUG is turned on.
 def debug(string):
     if DEBUG:
         print(string)
+
+# Catch the quit signal to exit gracefully.
+def sig_int_handler(signal, frame):
+    global is_sig_quit
+
+    debug("Received SIGQUIT.")
+    is_sig_quit = True
 
 # Resize the frame to fit comfortably in the terminal.
 def resize(frame):
@@ -113,7 +119,7 @@ def get_colors(frames):
         if DEBUG:
             if int(len(palette) / VALUES_PER_COLOR) * VALUES_PER_COLOR != len(palette):
                 print("ERROR: Color values are being left out!")
-                sys.exit()
+                sys.exit(1)
 
         # Group the palette from a list of plain ints to a set of [[R, G, B, A], ...]
         for i in range(int(len(palette) / VALUES_PER_COLOR)):
@@ -126,7 +132,7 @@ def get_colors(frames):
             if max_colors != None:
                 if len(frame_colors) > max_colors:
                     print("ERROR: More colors than the maximum amount specified by the user.")
-                    sys.exit()
+                    sys.exit(1)
 
         colors.append(frame_colors)
     debug("Colors: " + str(colors))
@@ -180,6 +186,9 @@ def is_terminal_size_different():
 def initialize():
     global frames, colors, rendered, duration, width, height, gif_file
 
+    # Attach the CTRL+C signal to the cleaner, custom signal handler.
+    signal.signal(signal.SIGINT, sig_int_handler)
+
     # Make it look cleaner while it renders.
     clear_screen()
     print("...")
@@ -202,12 +211,12 @@ def interpret_args():
 
     if len(sys.argv) < 2:
         print("ERROR: No GIF specified! Put in the filename of the GIF you want to use, or \"help\" for more information.")
-        sys.exit()
+        sys.exit(1)
 
     if sys.argv[1] == "help":
         readme = open("README.md", "r").read()
         print(readme)
-        sys.exit()
+        sys.exit(0)
 
     gif_file = sys.argv[1]
 
@@ -219,7 +228,7 @@ def interpret_args():
             character = arg[5:]
             if len(character) != 1 and len(character) != 2:
                 print("ERROR: Length of char= value can only be 1 or 2.")
-                sys.exit()
+                sys.exit(1)
             debug("Set character to " + character + ".")
 
         elif arg[:7] == "colors=":
@@ -233,7 +242,7 @@ def interpret_args():
                 is_dithered = False
             else:
                 print("ERROR: Dither mode not recognized!")
-                sys.exit()
+                sys.exit(1)
 
         elif arg[:6] == "speed=":
             speed = float(arg[6:])
@@ -252,6 +261,8 @@ if SHOULD_PLAY:
             if is_terminal_size_different():
                 initialize()
                 break
+            if is_sig_quit:
+                sys.exit(0)
             clear_screen()
             print(frame, sep="", end="")
             frame_index += 1

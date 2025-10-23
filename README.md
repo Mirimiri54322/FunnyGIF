@@ -19,7 +19,6 @@ Each argument is shown with its name and its default value, and a description of
 - Option to flip image.
 - Option to rotate image.
 - Option to play GIF in reverse.
-- Make the screen look nicer when the program is interrupted.
 - Option to automatically crop off pixels that are transparent on all frames.
 - Option to resize image.
 - Option to pixellate image more (4 "pixel" segments instead of 1 "pixel" segments).
