@@ -27,6 +27,7 @@ term_rows = 0
 gif_file = None # argv[1] should always be the file to use.
 character = None # Arg: Character to use to draw the image.
 is_dithered = True # Arg: whether or not to dither the image when shrinking.
+is_reversed = False # Arg: whether or not to play the animation backwards.
 max_colors = None # Arg: the integer number of colors to have in the palette. If this is None, use as many colors as the image has by default.
 speed = 1.0 # Arg: the constant by which to multiply the speed of the GIF at playback.
 
@@ -176,7 +177,12 @@ def render_all():
     for frame in frames:
         rendered.append(render_frame(frame_index, list(frame.getdata()), width, height))
         frame_index += 1
+
+    if is_reversed:
+        rendered.reverse()
+        
     debug("Render completed!")
+
 
 # If the terminal was resized, return True.
 def is_terminal_size_different():
@@ -207,7 +213,7 @@ def initialize():
 
 # Interpret command line arguments.
 def interpret_args():
-    global gif_file, character, is_dithered, speed, max_colors
+    global gif_file, character, is_dithered, is_reversed, speed, max_colors
 
     if len(sys.argv) < 2:
         print("ERROR: No GIF specified! Put in the filename of the GIF you want to use, or \"help\" for more information.")
@@ -243,6 +249,10 @@ def interpret_args():
             else:
                 print("ERROR: Dither mode not recognized!")
                 sys.exit(1)
+
+        elif arg[:8] == "reverse=":
+            is_reversed = bool(arg[8:])
+            debug("Set is_reversed to " + str(is_reversed) + ".")
 
         elif arg[:6] == "speed=":
             speed = float(arg[6:])
