@@ -14,8 +14,18 @@ SHOULD_PLAY = True
 VALUES_PER_COLOR = 4 # In RGBA, there will be 4 colors.
 
 # Palette constants.
-PALETTE_RGB = [[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255], [255, 255, 255, 255], [0, 0, 0, 255]]
-PALETTE_CMYK = [[255, 255, 0, 255], [255, 0, 255, 255], [0, 255, 255, 255], [255, 255, 255, 255], [0, 0, 0, 255]]
+PALETTE_BI = [[214, 2, 112], [155, 79, 150], [0, 56, 168]]
+PALETTE_BW = [[0, 0, 0], [255, 255, 255]]
+PALETTE_CATPUCCIN = [[245, 224, 220], [242, 205, 205], [245, 194, 231], [203, 166, 247], [243, 139, 168], [235, 160, 172], [250, 179, 135], [249, 226, 175], [166, 227, 161], [148, 226, 213], [137, 220, 235], [116, 199, 236], [137, 180, 250], [180, 190, 254], [205, 214, 244], [186, 194, 222], [166, 173, 200], [147, 153, 178], [127, 132, 156], [108, 112, 134], [88, 91, 112], [69, 71, 90], [49, 50, 68], [30, 30, 46], [24, 24, 37], [17, 17, 27]]
+PALETTE_CMYK = [[255, 255, 0], [255, 0, 255], [0, 255, 255], [255, 255, 255], [0, 0, 0]]
+PALETTE_DRACULA = [[40, 42, 54], [68, 71, 90], [248, 248, 242], [98, 114, 164], [139, 223, 253], [80, 250, 123], [255, 184, 108], [255, 121, 198], [189, 147, 249], [255, 85, 85], [241, 250, 140]]
+PALETTE_LESBIAN = [[213, 45, 0], [239, 118, 39], [255, 154, 86], [255, 255, 255], [209, 98, 164], [181, 86, 144], [181, 86, 144], [163, 2, 98]]
+PALETTE_MONOCHROME = [[0, 0, 0], [64, 64, 64], [128, 128, 128], [192, 192, 192], [255, 255, 255]]
+PALETTE_PAINT = [[0, 0, 0], [127, 127, 127], [136, 0, 20], [237, 28, 35], [255, 125, 39], [255, 242, 0], [34, 177, 77], [0, 162, 232], [62, 71, 203], [162, 73, 164], [255, 255, 255], [195, 195, 195], [185, 120, 88], [255, 174, 204], [255, 202, 12], [238, 229, 178], [180, 230, 29], [153, 217, 235], [112, 146, 190], [200, 191, 231]]
+PALETTE_RGB = [[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 255], [0, 0, 0]]
+PALETTE_RGBCMY = [[255, 0, 0], [255, 255, 0], [0, 255, 0], [0, 255, 255], [0, 0, 255], [255, 0, 255], [0, 0, 0], [255, 255, 255]]
+PALETTE_TRANS = [[91, 206, 250], [245, 169, 184], [255, 255, 255]]
+PALETTE_VAPORWAVE = [[192, 255, 255], [128, 255, 255], [64, 255, 255], [0, 255, 255], [0, 0, 255], [64, 0, 255], [192, 0, 255], [255, 0, 255], [255, 64, 255], [255, 128, 255], [255, 192, 255], [128, 255, 192]]
 
 # Image variables.
 frames = []
@@ -110,7 +120,7 @@ def get_frames(gif):
 # Get the distance between two colors.
 def get_color_distance(color1, color2):
     distance = 0
-    for i in range(VALUES_PER_COLOR):
+    for i in range(min(len(color1), len(color2))):
         distance += abs(color1[i] - color2[i])
 
     return distance
@@ -169,7 +179,10 @@ def get_colors(frames):
                 if VALUES_PER_COLOR == 4:
                     if color[3] > 127:
                         debug("Applying global palette " + str(global_palette) + " to frame " + str(frame) + ".")
-                        color = get_closest_palette_color(color)
+                        closest = get_closest_palette_color(color)
+                        color[0] = closest[0]
+                        color[1] = closest[1]
+                        color[2] = closest[2]
 
             frame_colors.append(color)
 
@@ -298,10 +311,32 @@ def interpret_args():
             global_palette = arg[8:]
 
             # Check if it's one of the presets.
-            if global_palette.lower() == "rgb":
-                global_palette = PALETTE_RGB
+            if global_palette.lower() == "none":
+                global_palette = None
+            elif global_palette.lower() == "bi":
+                global_palette = PALETTE_BI
+            elif global_palette.lower() == "bw":
+                global_palette = PALETTE_BW
             elif global_palette.lower() == "cmyk":
                 global_palette = PALETTE_CMYK
+            elif global_palette.lower() == "catpuccin":
+                global_palette = PALETTE_CATPUCCIN
+            elif global_palette.lower() == "dracula":
+                global_palette = PALETTE_DRACULA
+            elif global_palette.lower() == "lesbian":
+                global_palette = PALETTE_LESBIAN
+            elif global_palette.lower() == "monochrome":
+                global_palette = PALETTE_MONOCHROME
+            elif global_palette.lower() == "paint":
+                global_palette = PALETTE_PAINT
+            elif global_palette.lower() == "rgb":
+                global_palette = PALETTE_RGB
+            elif global_palette.lower() == "rgbcmy":
+                global_palette = PALETTE_RGBCMY
+            elif global_palette.lower() == "trans":
+                global_palette = PALETTE_TRANS
+            elif global_palette.lower() == "vaporwave":
+                global_palette = PALETTE_VAPORWAVE
             else:
                 # Once custom palettes are allowed, take this error out.
                 print("ERROR: Palette preset not recognized!")

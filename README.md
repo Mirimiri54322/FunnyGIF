@@ -10,7 +10,7 @@ Each argument is shown with its name and its default value, and a description of
 - char (char=" ") The one or two characters used to draw each pixel of the image. By default, the image renders pixels as two spaces with colored backgrounds.
 - colors (colors= however many colors the image has by default) Limits the maximum number of colors to the specified value. Setting this to more colors than the image has will not produce a visible result.
 - dither (dither=true) "true" or "false" for whether or not the image should be dithered. Only does anything if colors is set. It may be hard to notice the effect of this option.
-- palette (palette= nothing) Designates a global palette to be used for all frames. Each pixel becomes the closest color from the palette. Presets: rgb, cmyk
+- palette (palette=none) Designates a global palette to be used for all frames. Each pixel becomes the closest color from the palette. Presets: none, bi, bw, catpuccin, cmyk, dracula, lesbian, monochrome, paint, rgb, rgbcmy, trans, vaporwave.
 - reverse (reverse=false) "true" or "false" for whether or not to play the animation backwards.
 - speed (speed=1.0) A higher speed makes the GIF animate faster, and a lower speed makes it slower.
 
