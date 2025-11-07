@@ -4,7 +4,7 @@ import signal
 import sys
 import time
 from PIL import Image, ImageSequence # Documentation at https://pillow.readthedocs.io/en/stable/
-from termcolor import colored, cprint # Documentation at https://pypi.org/project/termcolor/
+from termcolor import colored # Documentation at https://pypi.org/project/termcolor/
 
 # Debug constants.
 DEBUG = False
@@ -12,6 +12,10 @@ SHOULD_PLAY = True
 
 # Non-debug constants.
 VALUES_PER_COLOR = 4 # In RGBA, there will be 4 colors.
+
+# Palette constants.
+PALETTE_RGB = [[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255], [255, 255, 255, 255], [0, 0, 0, 255]]
+PALETTE_CMYK = [[255, 255, 0, 255], [255, 0, 255, 255], [0, 255, 255, 255], [255, 255, 255, 255], [0, 0, 0, 255]]
 
 # Image variables.
 frames = []
@@ -24,8 +28,9 @@ term_cols = 0
 term_rows = 0
 
 # Arg variables.
-gif_file = None # argv[1] should always be the file to use.
 character = None # Arg: Character to use to draw the image.
+gif_file = None # argv[1] should always be the file to use.
+global_palette = None # Arg: the specific color palette the entire image must use. Pixels become whichever color in the palette they are closest to. If it's set to None, then no global palette is used.
 is_dithered = True # Arg: whether or not to dither the image when shrinking.
 is_reversed = False # Arg: whether or not to play the animation backwards.
 max_colors = None # Arg: the integer number of colors to have in the palette. If this is None, use as many colors as the image has by default.
@@ -102,9 +107,38 @@ def get_frames(gif):
 
     debug("Frames: " + str(len(frames)))
 
+# Get the distance between two colors.
+def get_color_distance(color1, color2):
+    distance = 0
+    for i in range(VALUES_PER_COLOR):
+        distance += abs(color1[i] - color2[i])
+
+    return distance
+
+
+# Given a pixel, get the closest color from the global palette and apply it to the pixel.
+def get_closest_palette_color(color):
+    global global_palette
+
+    closest_color = None
+    closest_distance = None
+    for current_color in global_palette:
+        current_distance = get_color_distance(color, current_color)
+        if closest_color == None:
+            closest_color = current_color
+            closest_distance = current_distance
+            continue
+        if current_distance < closest_distance:
+            closest_color = current_color
+            closest_distance = current_distance
+
+    debug(str(color) + " was closest to " + str(closest_color) + ".")
+        
+    return closest_color
+
 # Initialize all colors.
 def get_colors(frames):
-    global colors
+    global colors, global_palette
 
     # Each frame can have its own palette in some GIFs, so we must get a seperate palette for each frame.
     for frame in frames:
@@ -125,8 +159,18 @@ def get_colors(frames):
         # Group the palette from a list of plain ints to a set of [[R, G, B, A], ...]
         for i in range(int(len(palette) / VALUES_PER_COLOR)):
             color = []
+
             for j in range(VALUES_PER_COLOR):
                 color.append(palette[i * VALUES_PER_COLOR + j])
+
+            # Apply a global palette if one was specified.
+            if global_palette != None:
+                # Apply only if the pixel isn't mostly transparent.
+                if VALUES_PER_COLOR == 4:
+                    if color[3] > 127:
+                        debug("Applying global palette " + str(global_palette) + " to frame " + str(frame) + ".")
+                        color = get_closest_palette_color(color)
+
             frame_colors.append(color)
 
         if DEBUG:
@@ -213,7 +257,7 @@ def initialize():
 
 # Interpret command line arguments.
 def interpret_args():
-    global gif_file, character, is_dithered, is_reversed, speed, max_colors
+    global gif_file, global_palette, character, is_dithered, is_reversed, speed, max_colors
 
     if len(sys.argv) < 2:
         print("ERROR: No GIF specified! Put in the filename of the GIF you want to use, or \"help\" for more information.")
@@ -249,6 +293,21 @@ def interpret_args():
             else:
                 print("ERROR: Dither mode not recognized!")
                 sys.exit(1)
+
+        elif arg[:8] == "palette=":
+            global_palette = arg[8:]
+
+            # Check if it's one of the presets.
+            if global_palette.lower() == "rgb":
+                global_palette = PALETTE_RGB
+            elif global_palette.lower() == "cmyk":
+                global_palette = PALETTE_CMYK
+            else:
+                # Once custom palettes are allowed, take this error out.
+                print("ERROR: Palette preset not recognized!")
+                sys.exit(1)
+
+            debug("Set global palette to " + str(global_palette) + ".")
 
         elif arg[:8] == "reverse=":
             is_reversed = bool(arg[8:])
