@@ -14,16 +14,34 @@ SHOULD_PLAY = True
 VALUES_PER_COLOR = 4 # In RGBA, there will be 4 colors.
 
 # Palette constants.
+PALETTE_ACE = [[0, 0, 0], [163, 163, 163], [255, 255, 255], [128, 0, 128]]
+PALETTE_AGENDER = [[0, 0, 0], [188, 196, 199], [255, 255, 255], [183, 246, 132]]
+PALETTE_ARO = [[61, 165, 66], [167, 211, 121], [255, 255, 255], [169, 169, 169], [0, 0, 0]]
+PALETTE_AROACE = [[226, 140, 0], [236, 205, 0], [255, 255, 255], [98, 174, 220], [32, 56, 86]]
 PALETTE_BI = [[214, 2, 112], [155, 79, 150], [0, 56, 168]]
 PALETTE_BW = [[0, 0, 0], [255, 255, 255]]
 PALETTE_CATPUCCIN = [[245, 224, 220], [242, 205, 205], [245, 194, 231], [203, 166, 247], [243, 139, 168], [235, 160, 172], [250, 179, 135], [249, 226, 175], [166, 227, 161], [148, 226, 213], [137, 220, 235], [116, 199, 236], [137, 180, 250], [180, 190, 254], [205, 214, 244], [186, 194, 222], [166, 173, 200], [147, 153, 178], [127, 132, 156], [108, 112, 134], [88, 91, 112], [69, 71, 90], [49, 50, 68], [30, 30, 46], [24, 24, 37], [17, 17, 27]]
 PALETTE_CMYK = [[255, 255, 0], [255, 0, 255], [0, 255, 255], [255, 255, 255], [0, 0, 0]]
+PALETTE_DEMIBOY = [[127, 127, 127], [196, 196, 196], [157, 215, 234], [255, 255, 255]]
+PALETTE_DEMIGIRL = [[127, 127, 127], [196, 196, 196], [253, 173, 200], [255, 255, 255]]
+PALETTE_DISABILITY = [[88, 88, 88], [207, 114, 128], [238, 223, 119], [234, 235, 236], [122, 193, 224], [58, 175, 125]]
 PALETTE_DRACULA = [[40, 42, 54], [68, 71, 90], [248, 248, 242], [98, 114, 164], [139, 223, 253], [80, 250, 123], [255, 184, 108], [255, 121, 198], [189, 147, 249], [255, 85, 85], [241, 250, 140]]
+PALETTE_GAY = [[7, 141, 112], [38, 206, 170], [152, 232, 193], [255, 255, 255], [123, 173, 226], [80, 73, 204], [61, 26, 120]]
+PALETTE_GENDERFLUID = [[255, 118, 164], [255, 255, 255], [192, 17, 215], [0, 0, 0], [47, 60, 190]]
+PALETTE_GENDERQUEER = [[181, 126, 220], [255, 255, 255], [74, 129, 35]]
+PALETTE_INTERSEX = [[255, 216, 0], [121, 2, 170]]
 PALETTE_LESBIAN = [[213, 45, 0], [239, 118, 39], [255, 154, 86], [255, 255, 255], [209, 98, 164], [181, 86, 144], [181, 86, 144], [163, 2, 98]]
 PALETTE_MONOCHROME = [[0, 0, 0], [64, 64, 64], [128, 128, 128], [192, 192, 192], [255, 255, 255]]
+PALETTE_NONBINARY = [[252, 244, 52], [255, 255, 255], [156, 89, 209], [44, 44, 44]]
 PALETTE_PAINT = [[0, 0, 0], [127, 127, 127], [136, 0, 20], [237, 28, 35], [255, 125, 39], [255, 242, 0], [34, 177, 77], [0, 162, 232], [62, 71, 203], [162, 73, 164], [255, 255, 255], [195, 195, 195], [185, 120, 88], [255, 174, 204], [255, 202, 12], [238, 229, 178], [180, 230, 29], [153, 217, 235], [112, 146, 190], [200, 191, 231]]
+PALETTE_PAN = [[255, 33, 140], [255, 216, 0], [33, 177, 255]]
+PALETTE_POLYAMORY = [[0, 0, 255], [255, 0, 0], [255, 255, 0], [0, 0, 0]]
+PALETTE_POLYSEXUAL = [[247, 20, 186], [1, 214, 106], [21, 148, 246]]
+PALETTE_QUEERPLATONIC = [[248, 159, 201], [46, 40, 38], [126, 126, 126], [255, 255, 255], [254, 233, 0]]
+PALETTE_RAINBOW = [[228, 3, 3], [255, 140, 0], [255, 237, 0], [0, 128, 38], [0, 76, 255], [115, 41, 130]]
 PALETTE_RGB = [[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 255], [0, 0, 0]]
 PALETTE_RGBCMY = [[255, 0, 0], [255, 255, 0], [0, 255, 0], [0, 255, 255], [0, 0, 255], [255, 0, 255], [0, 0, 0], [255, 255, 255]]
+PALETTE_TERTIARY = [[255, 128, 0], [128, 255, 0], [0, 255, 128], [0, 128, 255], [128, 0, 255], [255, 0, 128]]
 PALETTE_TRANS = [[91, 206, 250], [245, 169, 184], [255, 255, 255]]
 PALETTE_VAPORWAVE = [[192, 255, 255], [128, 255, 255], [64, 255, 255], [0, 255, 255], [0, 0, 255], [64, 0, 255], [192, 0, 255], [255, 0, 255], [255, 64, 255], [255, 128, 255], [255, 192, 255], [128, 255, 192]]
 
@@ -313,26 +331,62 @@ def interpret_args():
             # Check if it's one of the presets.
             if global_palette.lower() == "none":
                 global_palette = None
+            elif global_palette.lower() == "ace":
+                global_palette = PALETTE_ACE
+            elif global_palette.lower() == "agender":
+                global_palette = PALETTE_AGENDER
+            elif global_palette.lower() == "aro":
+                global_palette = PALETTE_ARO
+            elif global_palette.lower() == "aroace":
+                global_palette = PALETTE_AROACE
             elif global_palette.lower() == "bi":
                 global_palette = PALETTE_BI
             elif global_palette.lower() == "bw":
                 global_palette = PALETTE_BW
-            elif global_palette.lower() == "cmyk":
-                global_palette = PALETTE_CMYK
             elif global_palette.lower() == "catpuccin":
                 global_palette = PALETTE_CATPUCCIN
+            elif global_palette.lower() == "cmyk":
+                global_palette = PALETTE_CMYK
+            elif global_palette.lower() == "demiboy":
+                global_palette = PALETTE_DEMIBOY
+            elif global_palette.lower() == "demigirl":
+                global_palette = PALETTE_DEMIGIRL
+            elif global_palette.lower() == "disability":
+                global_palette = PALETTE_DISABILITY
             elif global_palette.lower() == "dracula":
                 global_palette = PALETTE_DRACULA
+            elif global_palette.lower() == "gay":
+                global_palette = PALETTE_GAY
+            elif global_palette.lower() == "genderfluid":
+                global_palette = PALETTE_GENDERFLUID
+            elif global_palette.lower() == "genderqueer":
+                global_palette = PALETTE_GENDERQUEER
+            elif global_palette.lower() == "intersex":
+                global_palette = PALETTE_INTERSEX
             elif global_palette.lower() == "lesbian":
                 global_palette = PALETTE_LESBIAN
             elif global_palette.lower() == "monochrome":
                 global_palette = PALETTE_MONOCHROME
+            elif global_palette.lower() == "nonbinary":
+                global_palette = PALETTE_NONBINARY
             elif global_palette.lower() == "paint":
                 global_palette = PALETTE_PAINT
+            elif global_palette.lower() == "pan":
+                global_palette = PALETTE_PAN
+            elif global_palette.lower() == "polyamory":
+                global_palette = PALETTE_POLYAMORY
+            elif global_palette.lower() == "polysexual":
+                global_palette = PALETTE_POLYSEXUAL
+            elif global_palette.lower() == "queerplatonic":
+                global_palette = PALETTE_QUEERPLATONIC
+            elif global_palette.lower() == "rainbow":
+                global_palette = PALETTE_RAINBOW
             elif global_palette.lower() == "rgb":
                 global_palette = PALETTE_RGB
             elif global_palette.lower() == "rgbcmy":
                 global_palette = PALETTE_RGBCMY
+            elif global_palette.lower() == "tertiary":
+                global_palette = PALETTE_TERTIARY
             elif global_palette.lower() == "trans":
                 global_palette = PALETTE_TRANS
             elif global_palette.lower() == "vaporwave":
