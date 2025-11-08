@@ -60,6 +60,7 @@ character = None # Arg: Character to use to draw the image.
 gif_file = None # argv[1] should always be the file to use.
 global_palette = None # Arg: the specific color palette the entire image must use. Pixels become whichever color in the palette they are closest to. If it's set to None, then no global palette is used.
 is_dithered = True # Arg: whether or not to dither the image when shrinking.
+is_palette_uniform = False # Arg: whether or not to force a unified palette onto the image.
 is_reversed = False # Arg: whether or not to play the animation backwards.
 max_colors = None # Arg: the integer number of colors to have in the palette. If this is None, use as many colors as the image has by default.
 speed = 1.0 # Arg: the constant by which to multiply the speed of the GIF at playback.
@@ -125,6 +126,7 @@ def get_frames(gif):
 
         # Cut the number of colors, if that's what the user wanted.
         if max_colors != None:
+            debug("Cutting number of colors...")
             if is_dithered:
                 frame = frame.quantize(max_colors, dither=Image.Dither.FLOYDSTEINBERG)
             else:
@@ -170,7 +172,9 @@ def get_closest_palette_color(color):
 
 # Initialize all colors.
 def get_colors(frames):
-    global colors, global_palette
+    global colors, global_palette, is_palette_uniform
+
+    is_uniform_palette_established_yet = False
 
     # Each frame can have its own palette in some GIFs, so we must get a seperate palette for each frame.
     for frame in frames:
@@ -208,14 +212,13 @@ def get_colors(frames):
 
             frame_colors.append(color)
 
-        if DEBUG:
-            if max_colors != None:
-                if len(frame_colors) > max_colors:
-                    print("ERROR: More colors than the maximum amount specified by the user.")
-                    sys.exit(1)
-
         colors.append(frame_colors)
-    debug("Colors: " + str(colors))
+        
+        if is_palette_uniform and not is_uniform_palette_established_yet:
+            debug("Selecting this frame's palette as the new global palette to unify all frame colors with.")
+            global_palette = frame_colors
+
+        debug("Colors: " + str(colors))
 
 # Render one frame of a gif as a printable string.
 def render_frame(frame_index, frame, width, height):
@@ -290,9 +293,18 @@ def initialize():
     get_colors(frames)
     render_all()
 
+# Read a string and interpret it as a bool.
+def string_to_bool(str):
+    if str.lower() == "true":
+        return True
+    elif str.lower() == "false":
+        return False
+    print("ERROR: " + str + " is neither true nor false.")
+    exit(1)
+
 # Interpret command line arguments.
 def interpret_args():
-    global gif_file, global_palette, character, is_dithered, is_reversed, speed, max_colors
+    global gif_file, global_palette, character, is_dithered, is_palette_uniform, is_reversed, speed, max_colors
 
     if len(sys.argv) < 2:
         print("ERROR: No GIF specified! Put in the filename of the GIF you want to use, or \"help\" for more information.")
@@ -403,16 +415,21 @@ def interpret_args():
             debug("Set global palette to " + str(global_palette) + ".")
 
         elif arg[:8] == "reverse=":
-            is_reversed = bool(arg[8:])
+            is_reversed = string_to_bool(arg[8:])
             debug("Set is_reversed to " + str(is_reversed) + ".")
 
         elif arg[:6] == "speed=":
             speed = float(arg[6:])
             debug("Set speed to " + str(speed) + ".")
 
+        elif arg[:8] == "uniform=":
+            is_palette_uniform = string_to_bool(arg[8:])
+            debug("Set is_palette_uniform to " + str(is_palette_uniform) + ".")
+
 # Clear the screen.
 def clear_screen():
-    os.system('cls' if os.name == 'nt' else 'clear')
+    if not DEBUG:
+        os.system('cls' if os.name == 'nt' else 'clear')
 
 interpret_args()
 initialize()

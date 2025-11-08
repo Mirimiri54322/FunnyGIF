@@ -13,10 +13,10 @@ Each argument is shown with its name and its default value, and a description of
 - palette (palette=none) Designates a global palette to be used for all frames. Each pixel becomes the closest color from the palette. Presets: none, ace, agender, aro, aroace, bi, bw, catpuccin, cmyk, demiboy, demigirl, disability, dracula, gay, genderfluid, genderqueer, intersex, lesbian, monochrome, nonbinary, paint, pan, polyamory, polysexual, queerplatonic, rgb, rgbcmy, tertiary, trans, vaporwave.
 - reverse (reverse=false) "true" or "false" for whether or not to play the animation backwards.
 - speed (speed=1.0) A higher speed makes the GIF animate faster, and a lower speed makes it slower.
+- uniform (uniform=False) Whether or not to force each frame in the gif to use a uniform color palette. Can make a limited color palette with the "colors" argument look more consistent.
 
 ## Feature Wishlist
 - Option to use user-defined color palettes instead of only predefined ones.
-- Option to force the same color palette on every frame (not predefined; generated based on the image and the colors in it).
 - Fix tearing that appears with larger images on larger screens.
 - Option to flip image.
 - Option to rotate image.
