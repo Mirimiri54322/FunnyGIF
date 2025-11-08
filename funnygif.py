@@ -217,6 +217,7 @@ def get_colors(frames):
         if is_palette_uniform and not is_uniform_palette_established_yet:
             debug("Selecting this frame's palette as the new global palette to unify all frame colors with.")
             global_palette = frame_colors
+            is_uniform_palette_established_yet = True
 
         debug("Colors: " + str(colors))
 
