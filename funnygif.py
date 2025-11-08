@@ -79,6 +79,10 @@ def sig_int_handler(signal, frame):
     debug("Received SIGQUIT.")
     is_sig_quit = True
 
+# Determine if a pixel should be rendered as fully transparent. True if yes, False if no.
+def is_pixel_transparent(pixel):
+    return pixel[3] < 128
+
 # Resize the frame to fit comfortably in the terminal.
 def resize(frame):
     global term_cols, term_rows
@@ -240,7 +244,7 @@ def render_pixel(frame_index, pixel):
         text = colored(str(pixel) + " ", (255 - colors[frame_index][pixel][0], 255 - colors[frame_index][pixel][1], 255 - colors[frame_index][pixel][2]), on_color=color, attrs=attributes)
 
     # If it should be transparent, don't use any color for the foreground or background.
-    if colors[frame_index][pixel][3] < 128:
+    if is_pixel_transparent(colors[frame_index][pixel]):
         text = colored("  ", attrs=attributes)
 
     return text

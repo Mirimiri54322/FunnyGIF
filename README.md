@@ -15,7 +15,7 @@ Each argument is shown with its name and its default value, and a description of
 - speed (speed=1.0) A higher speed makes the GIF animate faster, and a lower speed makes it slower.
 
 ## Feature Wishlist
-- Option to use predefined color palettes. So, like, changing all the colors to the closest one in a predefined set.
+- Option to use user-defined color palettes instead of only predefined ones.
 - Option to force the same color palette on every frame (not predefined; generated based on the image and the colors in it).
 - Fix tearing that appears with larger images on larger screens.
 - Option to flip image.
