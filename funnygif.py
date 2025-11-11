@@ -3,7 +3,7 @@ import os
 import signal
 import sys
 import time
-from PIL import Image, ImageSequence # Documentation at https://pillow.readthedocs.io/en/stable/
+from PIL import Image, ImageOps, ImageSequence # Documentation at https://pillow.readthedocs.io/en/stable/
 from termcolor import colored # Documentation at https://pypi.org/project/termcolor/
 
 # Debug constants.
@@ -57,6 +57,7 @@ term_rows = 0
 
 # Arg variables.
 character = None # Arg: Character to use to draw the image.
+flip = None # Arg: which way to flip the image ("horizontal" or "vertical"), or not at all (None).
 gif_file = None # argv[1] should always be the file to use.
 global_palette = None # Arg: the specific color palette the entire image must use. Pixels become whichever color in the palette they are closest to. If it's set to None, then no global palette is used.
 is_dithered = True # Arg: whether or not to dither the image when shrinking.
@@ -118,7 +119,7 @@ def resize(frame):
 
 # Initialize all frames.
 def get_frames(gif):
-    global frames
+    global flip, frames
 
     ImageSequence.all_frames(gif)
     for frame in ImageSequence.Iterator(gif):
@@ -135,6 +136,12 @@ def get_frames(gif):
         # Convert to RGBA and then back to P (palette) so that all frames use palette mode consistently.
         copy = frame.convert(mode="RGBA")
         copy = copy.convert(mode="P")
+
+        # Flip the image if the user requested it.
+        if flip == "vertical":
+            copy = ImageOps.flip(copy)
+        elif flip == "horizontal":
+            copy = ImageOps.mirror(copy)
 
         copy = resize(copy)
         frames.append(copy)
@@ -305,7 +312,7 @@ def string_to_bool(str):
 
 # Interpret command line arguments.
 def interpret_args():
-    global gif_file, global_palette, character, is_dithered, is_palette_uniform, is_reversed, speed, max_colors
+    global gif_file, global_palette, character, flip, is_dithered, is_palette_uniform, is_reversed, speed, max_colors
 
     if len(sys.argv) < 2:
         print("ERROR: No GIF specified! Put in the filename of the GIF you want to use, or \"help\" for more information.")
@@ -340,6 +347,14 @@ def interpret_args():
                 is_dithered = False
             else:
                 print("ERROR: Dither mode not recognized!")
+                sys.exit(1)
+            
+        elif arg[:5] == "flip=":
+            flip = arg[5:].lower()
+            if flip == "none":
+                flip == None
+            elif flip != "vertical" and flip != "horizontal":
+                print("ERROR: " + arg[5:] + " is not a valid flip direction. Please choose \"vertical\" or \"horizontal\" or \"none\".")
                 sys.exit(1)
 
         elif arg[:8] == "palette=":
