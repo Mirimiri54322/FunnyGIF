@@ -19,7 +19,6 @@ Each argument is shown with its name and its default value, and a description of
 ## Feature Wishlist
 - Option to use user-defined color palettes instead of only predefined ones.
 - Fix tearing that appears with larger images on larger screens.
-- Option to flip image.
 - Option to rotate image.
 - Option to automatically crop off pixels that are transparent on all frames.
 - Option to resize image.
